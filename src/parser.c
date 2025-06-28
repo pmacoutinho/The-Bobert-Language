@@ -24,7 +24,7 @@ ASTNode* expr();
 ASTNode* term();
 ASTNode* factor();
 ASTNode* statement();
-ASTNode* block();
+ASTNode* object();
 
 ASTNode* parse() {
     advance(); // Load first token
@@ -68,8 +68,6 @@ ASTNode* factor() {
         expect(TOKEN_RPAREN);
         return node;
 
-    } else if (current.type == TOKEN_LCURLY) {
-        return block();
     } else {
         fprintf(stderr, "Syntax error: unexpected token '%s'\n", current.lexeme);
         exit(1);
@@ -82,14 +80,20 @@ ASTNode* statement() {
         advance();
         expect(TOKEN_ASSIGN);
         ASTNode* varName = new_identifier_node(name);
-        ASTNode* varValue = expr();
+
+        ASTNode* varValue;
+        if (current.type == TOKEN_LCURLY) {
+            varValue = object(); // Only allow object as assignment value
+        } else {
+            varValue = expr();
+        }
         return new_assignment_node(varName, varValue);
     } else {
         return expr();
     }
 }
 
-ASTNode* block() {
+ASTNode* object() {
     expect(TOKEN_LCURLY);
     ASTNode** statements = NULL;
     int count = 0, capacity = 0;
@@ -101,5 +105,5 @@ ASTNode* block() {
         statements[count++] = statement();
     }
     expect(TOKEN_RCURLY);
-    return new_block_node(statements, count);
+    return new_object_node(statements, count);
 }

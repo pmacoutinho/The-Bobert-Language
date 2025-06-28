@@ -35,9 +35,9 @@ ASTNode* new_assignment_node(ASTNode* varName, ASTNode* varValue) {
     return node;
 }
 
-ASTNode* new_block_node(ASTNode** statements, int count) {
+ASTNode* new_object_node(ASTNode** statements, int count) {
     ASTNode* node = malloc(sizeof(ASTNode));
-    node->type = AST_BLOCK;
+    node->type = AST_OBJECT;
     node->statements = statements;
     node->count = count;
     return node;
@@ -63,8 +63,8 @@ void print_ast(ASTNode* node, int depth) {
             print_ast(node->varName, depth + 1);
             print_ast(node->varValue, depth + 1);
             break;
-        case AST_BLOCK:
-            printf("Block:\n");
+        case AST_OBJECT:
+            printf("Object:\n");
             for (int i = 0; i < node->count; i++)
                 print_ast(node->statements[i], depth + 1);
             break;
