@@ -78,16 +78,23 @@ ASTNode* statement() {
     if (current.type == TOKEN_IDENTIFIER) {
         char* name = strdup(current.lexeme);
         advance();
-        expect(TOKEN_ASSIGN);
-        ASTNode* varName = new_identifier_node(name);
 
-        ASTNode* varValue;
-        if (current.type == TOKEN_LCURLY) {
-            varValue = object(); // Only allow object as assignment value
-        } else {
-            varValue = expr();
+        if (current.type == TOKEN_ASSIGN) {
+            expect(TOKEN_ASSIGN);
+            ASTNode* varName = new_identifier_node(name);
+
+            ASTNode* varValue;
+            if (current.type == TOKEN_LCURLY) {
+                varValue = object(); // Only allow object as assignment value
+            } else {
+                varValue = expr();
+            }
+            return new_assignment_node(varName, varValue);
+        } else {    // If it's a function declaration
+            ASTNode* blockName = new_identifier_node(name);
+            ASTNode* blockContent = parse();
+            return new_block_node(blockName, blockContent);
         }
-        return new_assignment_node(varName, varValue);
     } else {
         return expr();
     }

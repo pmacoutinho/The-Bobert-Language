@@ -43,6 +43,14 @@ ASTNode* new_object_node(ASTNode** statements, int count) {
     return node;
 }
 
+ASTNode* new_block_node(ASTNode* blockName, ASTNode* blockContent) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = AST_BLOCK;
+    node->blockName = blockName;
+    node->blockContent = blockContent;
+    return node;
+}
+
 void print_ast(ASTNode* node, int depth) {
     if (!node) return;
     for (int i = 0; i < depth; i++) printf("  ");
@@ -67,6 +75,11 @@ void print_ast(ASTNode* node, int depth) {
             printf("Object:\n");
             for (int i = 0; i < node->count; i++)
                 print_ast(node->statements[i], depth + 1);
+            break;
+        case AST_BLOCK:
+            printf("Block:\n");
+            print_ast(node->blockName, depth + 1);
+            print_ast(node->blockContent, depth + 1);
             break;
         default:
             printf("Unknown node type\n");
