@@ -9,8 +9,9 @@ typedef enum {
     AST_ASSIGN,
     AST_NUMBER,
     AST_BINARY,
-    AST_OBJECT,
-    AST_BLOCK
+    AST_OBJECT, 
+    AST_BLOCK,
+    AST_FUNC
 } ASTNodeType;
 
 typedef struct ASTNode ASTNode; // Add this line before the struct definition
@@ -34,13 +35,13 @@ typedef struct ASTNode {
             char assign;
             struct ASTNode* varValue;
         };
-        struct {                // For AST_OBJECT
+        struct {                // For AST_OBJECT and AST_BLOCK
             ASTNode** statements; 
             int count; 
-        }; 
-        struct {                // For AST_BLOCK
-            struct ASTNode* blockName;
-            struct ASTNode* blockContent;
+        };
+        struct {                // For AST_FUNC
+            struct ASTNode* funcName;
+            struct ASTNode* body;
         };
     };
 } ASTNode;
@@ -50,7 +51,8 @@ ASTNode* new_binary_node(char op, ASTNode* left, ASTNode* right);
 ASTNode* new_identifier_node(char* name);
 ASTNode* new_assignment_node(ASTNode* varName, ASTNode* varValue);
 ASTNode* new_object_node(ASTNode** statements, int count);
-ASTNode* new_block_node(ASTNode* blockName, ASTNode* blockContent);
+ASTNode* new_block_node(ASTNode** statements, int count);
+ASTNode* new_func_node(ASTNode* funcName, ASTNode *body);
 void print_ast(ASTNode* node, int depth);
 
 #endif

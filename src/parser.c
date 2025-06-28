@@ -25,6 +25,7 @@ ASTNode* term();
 ASTNode* factor();
 ASTNode* statement();
 ASTNode* object();
+ASTNode* block();
 
 ASTNode* parse() {
     advance(); // Load first token
@@ -91,9 +92,9 @@ ASTNode* statement() {
             }
             return new_assignment_node(varName, varValue);
         } else {    // If it's a function declaration
-            ASTNode* blockName = new_identifier_node(name);
-            ASTNode* blockContent = parse();
-            return new_block_node(blockName, blockContent);
+            ASTNode* funcName = new_identifier_node(name);
+            ASTNode* blockContent = block();
+            return new_func_node(funcName, blockContent);
         }
     } else {
         return expr();
@@ -113,4 +114,19 @@ ASTNode* object() {
     }
     expect(TOKEN_RCURLY);
     return new_object_node(statements, count);
+}
+
+ASTNode* block() {
+    expect(TOKEN_LCURLY);
+    ASTNode** statements = NULL;
+    int count = 0, capacity = 0;
+    while (current.type != TOKEN_RCURLY && current.type != TOKEN_EOF) {
+        if (count == capacity) {
+            capacity = capacity ? capacity * 2 : 4;
+            statements = realloc(statements, capacity * sizeof(ASTNode*));
+        }
+        statements[count++] = statement();
+    }
+    expect(TOKEN_RCURLY);
+    return new_block_node(statements, count);
 }
