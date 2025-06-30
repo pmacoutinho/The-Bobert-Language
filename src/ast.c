@@ -51,12 +51,36 @@ ASTNode *new_block_node(ASTNode** statements, int count) {
     return node;
 }
 
-ASTNode *new_func_node(ASTNode* funcName, ASTNode *body) {
+ASTNode *new_func_node(ASTNode* funcName, ASTNodeArray* args, ASTNode *body) {
     ASTNode *node = malloc(sizeof(ASTNode));
     node->type = AST_FUNC;
     node->funcName = funcName;
+    node->args = args;      // <-- Add this line!
     node->body = body;
     return node;
+}
+
+ASTNodeArray *initASTNodeArray() {
+    ASTNodeArray *arr = malloc(sizeof(ASTNodeArray));
+    arr->size = 0;
+    arr->capacity = 4; // initial capacity
+    arr->data = malloc(sizeof(ASTNode*) * arr->capacity);
+    return arr;
+}
+
+void pushExprAST(ASTNodeArray* arr, ASTNode* expr) {
+    if (arr->size >= arr->capacity) {
+        arr->capacity *= 2;
+        arr->data = realloc(arr->data, sizeof(ASTNode*) * arr->capacity);
+    }
+    arr->data[arr->size++] = expr;
+}
+
+void freeASTNodeArray(ASTNodeArray* arr) {
+    for (size_t i = 0; i < arr->size; ++i) {
+        free(arr->data[i]);  // free each ASTNode
+    }
+    free(arr->data);         // free the array itself
 }
 
 void print_ast(ASTNode* node, int depth) {
@@ -90,8 +114,12 @@ void print_ast(ASTNode* node, int depth) {
                 print_ast(node->statements[i], depth + 1);
             break;
         case AST_FUNC:
-            printf("Function:   \n");
-            print_ast(node->funcName, depth + 1); // Print function name as child
+            printf("Function:\n");
+            print_ast(node->funcName, depth + 1);
+            printf("  Parameters:\n");
+            for (size_t i = 0; i < node->args->size; ++i) {
+                print_ast(node->args->data[i], depth + 2);
+            }
             print_ast(node->body, depth + 1);
             break;
         default:

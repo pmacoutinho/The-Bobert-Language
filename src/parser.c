@@ -26,10 +26,46 @@ ASTNode* factor();
 ASTNode* statement();
 ASTNode* object();
 ASTNode* block();
+ASTNodeArray* new_args();
 
 ASTNode* parse() {
     advance(); // Load first token
     return statement();
+}
+
+ASTNode* statement() {
+    // Assignment: identifier '=' ...
+    if (current.type == TOKEN_IDENTIFIER) {
+        char* name = strdup(current.lexeme);
+        advance();
+
+        if (current.type == TOKEN_ASSIGN) {      // Assignment
+            expect(TOKEN_ASSIGN);
+            ASTNode* varName = new_identifier_node(name);
+            ASTNode* varValue;
+            if (current.type == TOKEN_LCURLY) {
+                varValue = object();
+            } else {
+                varValue = expr();
+            }
+            return new_assignment_node(varName, varValue);
+        } else if (current.type == TOKEN_LPAREN) {      // Function
+            expect(TOKEN_LPAREN);
+            ASTNode* funcName = new_identifier_node(name);
+            ASTNodeArray* args = new_args();
+            ASTNode* blockContent = block();
+            return new_func_node(funcName, args, blockContent);       // Variable Binary
+        } else if (current.type == TOKEN_PLUS || current.type == TOKEN_MINUS ||
+                    current.type == TOKEN_STAR || current.type == TOKEN_SLASH) {
+            ASTNode* left = new_identifier_node(name);
+            char op = current.lexeme[0];
+            advance();
+            ASTNode* right = expr();
+            return new_binary_node(op, left, right);
+        }
+    }
+    // For everything else, just parse as expression
+    return expr();
 }
 
 ASTNode* expr() {
@@ -75,39 +111,6 @@ ASTNode* factor() {
     }
 }
 
-ASTNode* statement() {
-    // Assignment: identifier '=' ...
-    if (current.type == TOKEN_IDENTIFIER) {
-        char* name = strdup(current.lexeme);
-        advance();
-
-        if (current.type == TOKEN_ASSIGN) {
-            expect(TOKEN_ASSIGN);
-            ASTNode* varName = new_identifier_node(name);
-            ASTNode* varValue;
-            if (current.type == TOKEN_LCURLY) {
-                varValue = object();
-            } else {
-                varValue = expr();
-            }
-            return new_assignment_node(varName, varValue);
-        } else if (current.type == TOKEN_LCURLY) {
-            ASTNode* funcName = new_identifier_node(name);
-            ASTNode* blockContent = block();
-            return new_func_node(funcName, blockContent);
-        } else if (current.type == TOKEN_PLUS || current.type == TOKEN_MINUS ||
-                    current.type == TOKEN_STAR || current.type == TOKEN_SLASH) {
-            ASTNode* left = new_identifier_node(name);
-            char op = current.lexeme[0];
-            advance();
-            ASTNode* right = expr();
-            return new_binary_node(op, left, right);
-        }
-    }
-    // For everything else, just parse as expression
-    return expr();
-}
-
 ASTNode* object() {
     expect(TOKEN_LCURLY);
     ASTNode** statements = NULL;
@@ -136,4 +139,19 @@ ASTNode* block() {
     }
     expect(TOKEN_RCURLY);
     return new_block_node(statements, count);
+}
+
+ASTNodeArray* new_args() {
+    ASTNodeArray *args = initASTNodeArray();
+
+    while (current.type != TOKEN_RPAREN) {
+        if (current.type == TOKEN_IDENTIFIER || current.type == TOKEN_INT) {
+            pushExprAST(args, expr());
+        } else if (current.type == TOKEN_COMA) {
+            advance();
+        }
+    }
+
+    advance();
+    return args;
 }
