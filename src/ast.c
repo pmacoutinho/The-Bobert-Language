@@ -59,7 +59,6 @@ ASTNode *new_func_node(ASTNode* funcName, ASTNode *body) {
     return node;
 }
 
-
 void print_ast(ASTNode* node, int depth) {
     if (!node) return;
     for (int i = 0; i < depth; i++) printf("  ");
