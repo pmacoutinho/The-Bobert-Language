@@ -3,14 +3,14 @@
 #include <stdlib.h>
 #include "../include/ast.h"
 
-ASTNode *new_number_node(int value) {
+ASTNode* new_number_node(int value) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_NUMBER;
     node->value = value;
     return node;
 }
 
-ASTNode *new_binary_node(char op, ASTNode* left, ASTNode* right) {
+ASTNode* new_binary_node(char op, ASTNode* left, ASTNode* right) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_BINARY;
     node->op = op;
@@ -19,14 +19,14 @@ ASTNode *new_binary_node(char op, ASTNode* left, ASTNode* right) {
     return node;
 }
 
-ASTNode *new_identifier_node(char *name) {
+ASTNode* new_identifier_node(char *name) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_IDENTIFIER;
     node->name = name;
     return node;
 }
 
-ASTNode *new_assignment_node(ASTNode* varName, ASTNode* varValue) {
+ASTNode* new_assignment_node(ASTNode* varName, ASTNode* varValue) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_ASSIGN;
     node->assign = '=';
@@ -35,7 +35,7 @@ ASTNode *new_assignment_node(ASTNode* varName, ASTNode* varValue) {
     return node;
 }
 
-ASTNode *new_object_node(ASTNode** statements, int count) {
+ASTNode* new_object_node(ASTNode** statements, int count) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_OBJECT;
     node->statements = statements;
@@ -43,7 +43,7 @@ ASTNode *new_object_node(ASTNode** statements, int count) {
     return node;
 }
 
-ASTNode *new_block_node(ASTNode** statements, int count) {
+ASTNode* new_block_node(ASTNode** statements, int count) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_BLOCK;
     node->statements = statements;
@@ -51,7 +51,7 @@ ASTNode *new_block_node(ASTNode** statements, int count) {
     return node;
 }
 
-ASTNode *new_func_node(ASTNode* funcName, ASTNodeArray* args, ASTNode *body) {
+ASTNode* new_func_node(ASTNode* funcName, ASTNodeArray* args, ASTNode *body) {
     ASTNode *node = malloc(sizeof(ASTNode));
     node->type = AST_FUNC;
     node->funcName = funcName;
@@ -60,7 +60,7 @@ ASTNode *new_func_node(ASTNode* funcName, ASTNodeArray* args, ASTNode *body) {
     return node;
 }
 
-ASTNodeArray *initASTNodeArray() {
+ASTNodeArray* initASTNodeArray() {
     ASTNodeArray *arr = malloc(sizeof(ASTNodeArray));
     arr->size = 0;
     arr->capacity = 4; // initial capacity

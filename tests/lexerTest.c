@@ -13,7 +13,7 @@ int main() {
             y = 4 / [1, 2, 3]
         }
     */
-    source = "math = {\nx = 3 + 42 * (s - 7)\ny = 4 / [1, 2, 3]\n}";
+    source = "extern other\nmath = {\nx = 3 + 42 * (s - 7)\ny = 4 / [1, 2, 3]\n}";
 
     Token token;
     do {
@@ -23,7 +23,7 @@ int main() {
                 "EOF", "INT", "IDENTIFIER", "PLUS", "MINUS", 
                 "STAR", "SLASH", "ASSIGN", "LPAREN", "RPAREN", 
                 "LCURLY", "RCURLY", "LBRACKET", "RBRACKET", 
-                "COMA", "UNKNOWN"
+                "COMA", "EXTERN", "UNKNOWN"
             }[token.type],
             token.lexeme,
             token.line

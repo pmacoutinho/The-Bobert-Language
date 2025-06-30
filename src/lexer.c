@@ -41,13 +41,18 @@ Token get_next_token() {
     if (isalpha(c)) {
         const char* start = &source[pos];
         while (isalnum(peek())) advance();
-        return make_token(TOKEN_IDENTIFIER, start, &source[pos] - start);
+        int length = &source[pos] - start;
+        // Check for 'extern'
+        if (length == 6 && strncmp(start, "extern", 6) == 0) {
+            return make_token(TOKEN_EXTERN, start, length);
+        }
+        return make_token(TOKEN_IDENTIFIER, start, length);
     }
 
     if (isdigit(c)) {
         const char* start = &source[pos];
         while (isdigit(peek())) advance();
-        return make_token(TOKEN_INT, start, &source[pos] - start);
+        return make_token(TOKEN_NUM, start, &source[pos] - start);
     }
 
     switch (advance()) {

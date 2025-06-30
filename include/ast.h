@@ -22,7 +22,6 @@ typedef struct {
     size_t capacity; // allocated size
 } ASTNodeArray;
 
-
 typedef struct ASTNode {
     ASTNodeType type;
     union {
@@ -61,7 +60,7 @@ ASTNode* new_assignment_node(ASTNode* varName, ASTNode* varValue);
 ASTNode* new_object_node(ASTNode** statements, int count);
 ASTNode* new_block_node(ASTNode** statements, int count);
 ASTNode* new_func_node(ASTNode* funcName, ASTNodeArray* args, ASTNode *body);
-ASTNodeArray *initASTNodeArray();
+ASTNodeArray* initASTNodeArray();
 void pushExprAST(ASTNodeArray* arr, ASTNode* expr);
 void freeASTNodeArray(ASTNodeArray* arr);
 void print_ast(ASTNode* node, int depth);

@@ -4,7 +4,7 @@
 
 typedef enum {
     TOKEN_EOF,
-    TOKEN_INT,
+    TOKEN_NUM,
     TOKEN_IDENTIFIER,
     TOKEN_PLUS,
     TOKEN_MINUS,
@@ -18,6 +18,7 @@ typedef enum {
     TOKEN_LBRACKET,
     TOKEN_RBRACKET,
     TOKEN_COMA,
+    TOKEN_EXTERN,      
     TOKEN_UNKNOWN
 } TokenType;
 

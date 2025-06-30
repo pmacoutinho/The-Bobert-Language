@@ -89,7 +89,7 @@ ASTNode* term() {
 }
 
 ASTNode* factor() {
-    if (current.type == TOKEN_INT) {
+    if (current.type == TOKEN_NUM) {
         int value = atoi(current.lexeme);
         advance();
         return new_number_node(value);
@@ -145,7 +145,7 @@ ASTNodeArray* new_args() {
     ASTNodeArray *args = initASTNodeArray();
 
     while (current.type != TOKEN_RPAREN) {
-        if (current.type == TOKEN_IDENTIFIER || current.type == TOKEN_INT) {
+        if (current.type == TOKEN_IDENTIFIER || current.type == TOKEN_NUM) {
             pushExprAST(args, expr());
         } else if (current.type == TOKEN_COMA) {
             advance();
