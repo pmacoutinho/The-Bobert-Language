@@ -19,6 +19,13 @@ ASTNode* new_binary_node(char op, ASTNode* left, ASTNode* right) {
     return node;
 }
 
+ASTNode* new_extern_node(char *name) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->type = AST_EXTERN;
+    node->name = name;
+    return node;
+}
+
 ASTNode* new_identifier_node(char *name) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_IDENTIFIER;
@@ -94,6 +101,9 @@ void print_ast(ASTNode* node, int depth) {
             printf("Binary: %c\n", node->op);
             print_ast(node->left, depth + 1);
             print_ast(node->right, depth + 1);
+            break;
+        case AST_EXTERN:
+            printf("Extern: %s\n", node->name);
             break;
         case AST_IDENTIFIER:
             printf("Identifier: %s\n", node->name);

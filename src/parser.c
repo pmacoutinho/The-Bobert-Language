@@ -30,12 +30,29 @@ ASTNodeArray* new_args();
 
 ASTNode* parse() {
     advance(); // Load first token
-    return statement();
+    ASTNode** statements = NULL;
+    int count = 0, capacity = 0;
+    while (current.type != TOKEN_EOF) {
+        if (count == capacity) {
+            capacity = capacity ? capacity * 2 : 4;
+            statements = realloc(statements, capacity * sizeof(ASTNode*));
+        }
+        statements[count++] = statement();
+    }
+    return new_block_node(statements, count);
 }
 
+
 ASTNode* statement() {
-    // Assignment: identifier '=' ...
-    if (current.type == TOKEN_IDENTIFIER) {
+    
+    if (current.type == TOKEN_EXTERN) {
+        advance();
+        char* name = strdup(current.lexeme);
+        advance();
+        return new_extern_node(name);
+    }
+    
+    if (current.type == TOKEN_IDENTIFIER) { 
         char* name = strdup(current.lexeme);
         advance();
 
@@ -64,8 +81,9 @@ ASTNode* statement() {
             return new_binary_node(op, left, right);
         }
     }
+   
     // For everything else, just parse as expression
-    return expr();
+        return expr();
 }
 
 ASTNode* expr() {

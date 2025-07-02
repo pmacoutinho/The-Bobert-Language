@@ -5,6 +5,7 @@
 #include <string.h>
 
 typedef enum {
+    AST_EXTERN,
     AST_IDENTIFIER,
     AST_ASSIGN,
     AST_NUMBER,
@@ -33,7 +34,7 @@ typedef struct ASTNode {
             struct ASTNode* left;
             struct ASTNode* right;
         };
-        struct {                // For AST_IDENTIFIER
+        struct {                // For AST_IDENTIFIER AND AST_EXTERN
             char* name;
         };
         struct {                // For AST_ASSIGN
@@ -55,6 +56,7 @@ typedef struct ASTNode {
 
 ASTNode* new_number_node(int value);
 ASTNode* new_binary_node(char op, ASTNode* left, ASTNode* right);
+ASTNode* new_extern_node(char *name);
 ASTNode* new_identifier_node(char* name);
 ASTNode* new_assignment_node(ASTNode* varName, ASTNode* varValue);
 ASTNode* new_object_node(ASTNode** statements, int count);
