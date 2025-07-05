@@ -11,9 +11,9 @@ int main() {
     /*Possible tests:
         extern other\nfunc(y, z) {\n math = { x = z + 3 * (1 - 2) / y} \n}\nfunc2(x, y, z) {z = y + x}
         
-        fib(x) { fib(x-1) }
+        fib(x) { fib(x-1)+fib(x-2) }
     */
-    source = "fib(x) { fib(x-1) }";
+    source = "extern other\nfunc(y, z) {\n math = { x = z + 3 * (1 - 2) / y} \n}\nfunc2(x, y, z) {z = y + x}";
     ASTNode* tree = parse();
     print_ast(tree, 0);
     return 0;

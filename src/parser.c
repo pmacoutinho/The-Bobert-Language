@@ -66,29 +66,22 @@ ASTNode* statement() {
                 varValue = expr();
             }
             return new_assignment_node(varName, varValue);
-        } else if (current.type == TOKEN_LPAREN) {      // Function
+        } else if (current.type == TOKEN_LPAREN) {      // Function or Call
             expect(TOKEN_LPAREN);
-            ASTNode* funcName = new_identifier_node(name);
             ASTNodeArray* args = new_args();
-            // Starting a function if there's a curly after it's closed
-            if (current.type == TOKEN_LCURLY) {
+            
+            if (current.type == TOKEN_LCURLY) {  // Function definition
+                ASTNode* funcName = new_identifier_node(name);
                 ASTNode* blockContent = block();
                 return new_func_node(funcName, args, blockContent);
+            } else {                            // Function call
+                return new_call_node(name, args);
             }
-            // If there isn't a curly after it's closed, it's a function call
-            return new_call_node(name, args);
-        } else if (current.type == TOKEN_PLUS || current.type == TOKEN_MINUS ||
-                    current.type == TOKEN_STAR || current.type == TOKEN_SLASH) {     // Variable Binary
-            ASTNode* left = new_identifier_node(name);
-            char op = current.lexeme[0];
-            advance();
-            ASTNode* right = expr();
-            return new_binary_node(op, left, right);
         }
     }
    
     // For everything else, just parse as expression
-        return expr();
+    return expr();
 }
 
 ASTNode* expr() {
