@@ -11,7 +11,7 @@ extern void InitializeLLVM();
 int main() {
     InitializeLLVM();
 
-    source = "fib(x) { fib(x-1) + fib(x-2) }";
+    source = "y = 1 + 2\nx = 4\nz = y + x";
     ASTNode* tree = parse();
 
     if (tree) {

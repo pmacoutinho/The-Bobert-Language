@@ -59,7 +59,8 @@ LLVMValueRef identifier_codegen(ASTNode *node) {
     LLVMValueRef V = FindNamedValue(node->name);
     if (!V)
         return LogErrorV("Unknown variable name");
-    return V;
+    // Load the value from the pointer
+    return LLVMBuildLoad2(Builder, LLVMDoubleTypeInContext(TheContext), V, node->name);
 }
 
 LLVMValueRef binary_codegen(ASTNode *node) {
@@ -109,13 +110,13 @@ LLVMValueRef assignment_codegen(ASTNode *node) {
         
         // Clean up the entry block builder
         LLVMDisposeBuilder(entry_builder);
+        
+        // Add to named values
+        AddNamedValue(node->varName->name, variable);
     }
     
     // Store the value
     LLVMBuildStore(Builder, val, variable);
-    
-    // Add to named values
-    AddNamedValue(node->varName->name, variable);
     
     return val;
 }
@@ -140,7 +141,12 @@ LLVMValueRef block_codegen(ASTNode *node) {
         }
     }
     
-    // Return the last expression's value
+    // Return the last expression's value (must be a double)
+    if (LLVMGetTypeKind(LLVMTypeOf(last)) != LLVMDoubleTypeKind) {
+        // If it's not already a double, convert it
+        last = LLVMBuildLoad2(Builder, LLVMDoubleTypeInContext(TheContext), last, "loadtmp");
+    }
+    
     LLVMBuildRet(Builder, last);
     
     // Verify the function
