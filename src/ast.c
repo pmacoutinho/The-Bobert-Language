@@ -2,11 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../include/ast.h"
+#include "../include/codegen.h"
 
 ASTNode* new_number_node(int value) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_NUMBER;
     node->value = value;
+    node->codegen = number_codegen;
     return node;
 }
 
@@ -16,6 +18,7 @@ ASTNode* new_binary_node(char op, ASTNode* left, ASTNode* right) {
     node->op = op;
     node->left = left;
     node->right = right;
+    node->codegen = binary_codegen;
     return node;
 }
 
@@ -30,6 +33,7 @@ ASTNode* new_identifier_node(char *name) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_IDENTIFIER;
     node->name = name;
+    node->codegen = identifier_codegen;
     return node;
 }
 
@@ -62,8 +66,18 @@ ASTNode* new_func_node(ASTNode* funcName, ASTNodeArray* args, ASTNode *body) {
     ASTNode *node = malloc(sizeof(ASTNode));
     node->type = AST_FUNC;
     node->funcName = funcName;
-    node->args = args;      // <-- Add this line!
+    node->args = args;      
     node->body = body;
+    node->codegen = func_codegen;
+    return node;
+}
+
+ASTNode* new_call_node(char* callee, ASTNodeArray* args) {
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node->type = AST_CALL;
+    node->callee = callee;
+    node->args = args;      
+    node->codegen = call_codegen;
     return node;
 }
 
@@ -75,7 +89,7 @@ ASTNodeArray* initASTNodeArray() {
     return arr;
 }
 
-void pushExprAST(ASTNodeArray* arr, ASTNode* expr) {
+void pushASTNode(ASTNodeArray* arr, ASTNode* expr) {
     if (arr->size >= arr->capacity) {
         arr->capacity *= 2;
         arr->data = realloc(arr->data, sizeof(ASTNode*) * arr->capacity);
@@ -131,6 +145,13 @@ void print_ast(ASTNode* node, int depth) {
                 print_ast(node->args->data[i], depth + 2);
             }
             print_ast(node->body, depth + 1);
+            break;
+        case AST_CALL:
+            printf("Call: %s\n", node->callee);
+            printf("      Arguments:\n");
+            for (size_t i = 0; i < node->args->size; ++i) {
+                print_ast(node->args->data[i], depth + 2);
+            }
             break;
         default:
             printf("Unknown node type\n");

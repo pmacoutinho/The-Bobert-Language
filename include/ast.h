@@ -3,6 +3,7 @@
 #define AST_H
 
 #include <string.h>
+#include <llvm-c/Core.h>
 
 typedef enum {
     AST_EXTERN,
@@ -12,19 +13,22 @@ typedef enum {
     AST_BINARY,
     AST_OBJECT, 
     AST_BLOCK,
-    AST_FUNC
+    AST_FUNC,
+    AST_CALL
 } ASTNodeType;
 
 typedef struct ASTNode ASTNode; // Forward declaration
+typedef LLVMValueRef (*CodegenFunc)(ASTNode*);
 
 typedef struct {
-    struct ASTNode** data;  // array of pointers to ExprAST
+    struct ASTNode** data;  // array of pointers to ASTNode
     size_t size;     // current number of elements
     size_t capacity; // allocated size
 } ASTNodeArray;
 
 typedef struct ASTNode {
     ASTNodeType type;
+    CodegenFunc codegen;
     union {
         struct {                // For AST_NUMBER
             int value;
@@ -51,6 +55,9 @@ typedef struct ASTNode {
             ASTNodeArray* args;
             struct ASTNode* body;
         };
+        struct {                // For AST_CALL
+            char* callee;
+        };
     };
 } ASTNode;
 
@@ -62,8 +69,9 @@ ASTNode* new_assignment_node(ASTNode* varName, ASTNode* varValue);
 ASTNode* new_object_node(ASTNode** statements, int count);
 ASTNode* new_block_node(ASTNode** statements, int count);
 ASTNode* new_func_node(ASTNode* funcName, ASTNodeArray* args, ASTNode *body);
+ASTNode* new_call_node(char* callee, ASTNodeArray* args);
 ASTNodeArray* initASTNodeArray();
-void pushExprAST(ASTNodeArray* arr, ASTNode* expr);
+void pushASTNode(ASTNodeArray* arr, ASTNode* expr);
 void freeASTNodeArray(ASTNodeArray* arr);
 void print_ast(ASTNode* node, int depth);
 

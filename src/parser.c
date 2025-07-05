@@ -1,6 +1,7 @@
 // parser.c
 #include <stdio.h>
 #include <stdlib.h>
+#include "../include/codegen.h"
 #include "../include/token.h"
 #include "../include/ast.h"
 
@@ -44,7 +45,6 @@ ASTNode* parse() {
 
 
 ASTNode* statement() {
-    
     if (current.type == TOKEN_EXTERN) {
         advance();
         char* name = strdup(current.lexeme);
@@ -70,10 +70,15 @@ ASTNode* statement() {
             expect(TOKEN_LPAREN);
             ASTNode* funcName = new_identifier_node(name);
             ASTNodeArray* args = new_args();
-            ASTNode* blockContent = block();
-            return new_func_node(funcName, args, blockContent);       // Variable Binary
+            // Starting a function if there's a curly after it's closed
+            if (current.type == TOKEN_LCURLY) {
+                ASTNode* blockContent = block();
+                return new_func_node(funcName, args, blockContent);
+            }
+            // If there isn't a curly after it's closed, it's a function call
+            return new_call_node(name, args);
         } else if (current.type == TOKEN_PLUS || current.type == TOKEN_MINUS ||
-                    current.type == TOKEN_STAR || current.type == TOKEN_SLASH) {
+                    current.type == TOKEN_STAR || current.type == TOKEN_SLASH) {     // Variable Binary
             ASTNode* left = new_identifier_node(name);
             char op = current.lexeme[0];
             advance();
@@ -164,7 +169,7 @@ ASTNodeArray* new_args() {
 
     while (current.type != TOKEN_RPAREN) {
         if (current.type == TOKEN_IDENTIFIER || current.type == TOKEN_NUM) {
-            pushExprAST(args, expr());
+            pushASTNode(args, expr());
         } else if (current.type == TOKEN_COMA) {
             advance();
         }
