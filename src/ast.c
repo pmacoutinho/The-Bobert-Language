@@ -148,7 +148,7 @@ void print_ast(ASTNode* node, int depth) {
             break;
         case AST_CALL:
             printf("Call: %s\n", node->callee);
-            printf("      Arguments:\n");
+            printf("        Arguments:\n");
             for (size_t i = 0; i < node->args->size; ++i) {
                 print_ast(node->args->data[i], depth + 2);
             }

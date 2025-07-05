@@ -75,7 +75,16 @@ ASTNode* statement() {
                 ASTNode* blockContent = block();
                 return new_func_node(funcName, args, blockContent);
             } else {                            // Function call
-                return new_call_node(name, args);
+                ASTNode* call = new_call_node(name, args);
+                // After a call, we might have binary operations
+                if (current.type == TOKEN_PLUS || current.type == TOKEN_MINUS || 
+                    current.type == TOKEN_STAR || current.type == TOKEN_SLASH) {
+                    char op = current.lexeme[0];
+                    advance();
+                    ASTNode* right = statement();
+                    return new_binary_node(op, call, right);
+                }
+                return call;
             }
         }
     }
