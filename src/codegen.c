@@ -9,9 +9,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-static LLVMContextRef TheContext = NULL;
-static LLVMModuleRef TheModule = NULL;
-static LLVMBuilderRef Builder = NULL;
+LLVMContextRef TheContext = NULL;
+LLVMModuleRef TheModule = NULL;
+LLVMBuilderRef Builder = NULL;
 static LLVMValueRef *NamedValues = NULL;
 static size_t NamedValuesCount = 0;
 
@@ -84,6 +84,70 @@ LLVMValueRef binary_codegen(ASTNode *node) {
     }
 }
 
+LLVMValueRef assignment_codegen(ASTNode *node) {
+    // Generate code for the right-hand side expression
+    LLVMValueRef val = node->varValue->codegen(node->varValue);
+    if (!val) return NULL;
+    
+    // Check if variable already exists
+    LLVMValueRef variable = FindNamedValue(node->varName->name);
+    
+    if (!variable) {
+        // Get current function
+        LLVMBasicBlockRef current_block = LLVMGetInsertBlock(Builder);
+        LLVMValueRef function = LLVMGetBasicBlockParent(current_block);
+        
+        // Create a builder for the entry block
+        LLVMBuilderRef entry_builder = LLVMCreateBuilderInContext(TheContext);
+        LLVMBasicBlockRef entry_block = LLVMGetEntryBasicBlock(function);
+        LLVMPositionBuilderAtEnd(entry_builder, entry_block);
+        
+        // Allocate space for the variable in the entry block
+        variable = LLVMBuildAlloca(entry_builder, 
+                                 LLVMDoubleTypeInContext(TheContext),
+                                 node->varName->name);
+        
+        // Clean up the entry block builder
+        LLVMDisposeBuilder(entry_builder);
+    }
+    
+    // Store the value
+    LLVMBuildStore(Builder, val, variable);
+    
+    // Add to named values
+    AddNamedValue(node->varName->name, variable);
+    
+    return val;
+}
+
+LLVMValueRef block_codegen(ASTNode *node) {
+    // Create a function type that takes no args and returns double
+    LLVMTypeRef double_type = LLVMDoubleTypeInContext(TheContext);
+    LLVMTypeRef func_type = LLVMFunctionType(double_type, NULL, 0, 0);
+    
+    // Create the function
+    LLVMValueRef func = LLVMAddFunction(TheModule, "__anon_expr", func_type);
+    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(func, "entry");
+    LLVMPositionBuilderAtEnd(Builder, entry);
+    
+    // Generate code for all statements
+    LLVMValueRef last = NULL;
+    for (int i = 0; i < node->count; i++) {
+        last = node->statements[i]->codegen(node->statements[i]);
+        if (!last) {
+            LLVMDeleteFunction(func);
+            return NULL;
+        }
+    }
+    
+    // Return the last expression's value
+    LLVMBuildRet(Builder, last);
+    
+    // Verify the function
+    LLVMVerifyFunction(func, LLVMAbortProcessAction);
+    return func;
+}
+
 LLVMValueRef call_codegen(ASTNode *node) {
     // Look up the name in the global module table
     LLVMValueRef CalleeF = LLVMGetNamedFunction(TheModule, node->callee);
@@ -115,7 +179,6 @@ LLVMValueRef call_codegen(ASTNode *node) {
     return call;
 }
 
-// PrototypeAST::codegen()
 LLVMValueRef prototype_codegen(ASTNode *node) {
     const char* funcName = node->funcName->name;
     size_t argCount = node->args ? node->args->size : 0;
@@ -143,7 +206,6 @@ LLVMValueRef prototype_codegen(ASTNode *node) {
     return F;
 }
 
-// FunctionAST::codegen()
 LLVMValueRef func_codegen(ASTNode *node) {
     const char* funcName = node->funcName->name;
     LLVMValueRef TheFunction = LLVMGetNamedFunction(TheModule, funcName);

@@ -19,9 +19,11 @@ LLVMValueRef LogErrorV(const char *Str);
 LLVMValueRef number_codegen(ASTNode *node);
 LLVMValueRef identifier_codegen(ASTNode *node);
 LLVMValueRef binary_codegen(ASTNode *node);
+LLVMValueRef assignment_codegen(ASTNode *node);
 LLVMValueRef call_codegen(ASTNode *node);
 LLVMValueRef prototype_codegen(ASTNode *node);
 LLVMValueRef func_codegen(ASTNode *node);
+LLVMValueRef block_codegen(ASTNode *node);
 
 // Helper functions
 void AddNamedValue(const char *name, LLVMValueRef value);

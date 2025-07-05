@@ -43,6 +43,7 @@ ASTNode* new_assignment_node(ASTNode* varName, ASTNode* varValue) {
     node->assign = '=';
     node->varName = varName;
     node->varValue = varValue;
+    node->codegen = assignment_codegen;
     return node;
 }
 
@@ -59,6 +60,7 @@ ASTNode* new_block_node(ASTNode** statements, int count) {
     node->type = AST_BLOCK;
     node->statements = statements;
     node->count = count;
+    node->codegen = block_codegen;
     return node;
 }
 
