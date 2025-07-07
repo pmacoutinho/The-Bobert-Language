@@ -26,7 +26,6 @@ ASTNode* new_extern_node(ASTNode* call) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_EXTERN;
     node->call = call;
-    node->codegen = extern_codegen;
     return node;
 }
 
@@ -71,6 +70,7 @@ ASTNode* new_prototype_node(char* funcName, ASTNodeArray* args) {
     node->funcName = funcName;
     node->args = args;      
     node->codegen = prototype_codegen;
+    return node;
 }
 
 ASTNode* new_func_node(ASTNode* prototype, ASTNode *body) {

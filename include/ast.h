@@ -76,7 +76,7 @@ ASTNode* new_assignment_node(ASTNode* varName, ASTNode* varValue);
 ASTNode* new_object_node(ASTNode** statements, int count);
 ASTNode* new_block_node(ASTNode** statements, int count);
 ASTNode* new_prototype_node(char* funcName, ASTNodeArray* args);
-ASTNode* new_func_node(ASTNode* prototypey, ASTNode *body);
+ASTNode* new_func_node(ASTNode* prototype, ASTNode *body);
 ASTNode* new_call_node(char* callee, ASTNodeArray* args);
 ASTNodeArray* initASTNodeArray();
 void pushASTNode(ASTNodeArray* arr, ASTNode* expr);
