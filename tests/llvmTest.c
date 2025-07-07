@@ -12,7 +12,7 @@ extern void InitializeLLVM();
 int main() {
     InitializeLLVM();
 
-    source = "fib(x) { fib(x-1)+fib(x-2) }";
+    source = "extern sin(x)\nx = 1\nz = x + 2";
     ASTNode* tree = parse();
 
     if (tree) {

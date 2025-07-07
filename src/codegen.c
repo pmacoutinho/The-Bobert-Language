@@ -125,11 +125,14 @@ LLVMValueRef block_codegen(ASTNode *node) {
     // First process any extern declarations
     for (int i = 0; i < node->count; i++) {
         if (node->statements[i]->type == AST_EXTERN) {
-            node->statements[i]->codegen(node->statements[i]);
+            // For extern, we just need to generate the prototype
+            if (node->statements[i]->call && node->statements[i]->call->codegen) {
+                node->statements[i]->call->codegen(node->statements[i]->call);
+            }
+            continue;
         }
     }
 
-    // Then create the function for non-extern statements
     LLVMTypeRef double_type = LLVMDoubleTypeInContext(TheContext);
     LLVMTypeRef func_type = LLVMFunctionType(double_type, NULL, 0, 0);
     LLVMValueRef func = LLVMAddFunction(TheModule, "__anon_expr", func_type);
@@ -149,7 +152,6 @@ LLVMValueRef block_codegen(ASTNode *node) {
     }
 
     if (!last) {
-        // If no non-extern statements, return 0.0
         last = LLVMConstReal(LLVMDoubleTypeInContext(TheContext), 0.0);
     } else if (LLVMGetTypeKind(LLVMTypeOf(last)) != LLVMDoubleTypeKind) {
         last = LLVMBuildLoad2(Builder, LLVMDoubleTypeInContext(TheContext), last, "loadtmp");
@@ -257,34 +259,4 @@ LLVMValueRef func_codegen(ASTNode *node) {
 
     LLVMDeleteFunction(TheFunction);
     return NULL;
-}
-
-LLVMValueRef extern_codegen(ASTNode *node) {
-    ASTNode *call = node->call;
-    if (!call || call->type != AST_CALL)
-        return LogErrorV("Invalid extern node");
-
-    // Create function type (double -> double)
-    LLVMTypeRef param_types[] = {LLVMDoubleTypeInContext(TheContext)};
-    LLVMTypeRef func_type = LLVMFunctionType(
-        LLVMDoubleTypeInContext(TheContext),
-        param_types,
-        1,  // Number of parameters
-        0   // Not vararg
-    );
-
-    // Add the function declaration
-    LLVMValueRef func = LLVMAddFunction(
-        TheModule,
-        call->callee,
-        func_type
-    );
-
-    // Set parameter name
-    if (call->args && call->args->size > 0) {
-        LLVMValueRef param = LLVMGetParam(func, 0);
-        LLVMSetValueName(param, call->args->data[0]->name);
-    }
-
-    return func;
 }

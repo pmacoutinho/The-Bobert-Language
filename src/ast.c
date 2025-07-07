@@ -26,6 +26,7 @@ ASTNode* new_extern_node(ASTNode* call) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_EXTERN;
     node->call = call;
+    node->codegen = NULL;  // Extern nodes don't need codegen themselves
     return node;
 }
 
