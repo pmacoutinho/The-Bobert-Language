@@ -47,9 +47,12 @@ ASTNode* parse() {
 ASTNode* statement() {
     if (current.type == TOKEN_EXTERN) {
         advance();
-        char* name = strdup(current.lexeme);
+        char* funcName = strdup(current.lexeme);
         advance();
-        return new_extern_node(name);
+        expect(TOKEN_LPAREN);
+        ASTNodeArray* args = new_args();
+        ASTNode* prototype = new_prototype_node(funcName, args);
+        return new_extern_node(prototype);
     }
     
     if (current.type == TOKEN_IDENTIFIER) { 
@@ -70,10 +73,10 @@ ASTNode* statement() {
             expect(TOKEN_LPAREN);
             ASTNodeArray* args = new_args();
             
+            ASTNode* prototype = new_prototype_node(name, args);
             if (current.type == TOKEN_LCURLY) {  // Function definition
-                ASTNode* funcName = new_identifier_node(name);
-                ASTNode* blockContent = block();
-                return new_func_node(funcName, args, blockContent);
+                ASTNode* body = block();
+                return new_func_node(prototype, body);
             } else {                            // Function call
                 ASTNode* call = new_call_node(name, args);
                 // After a call, we might have binary operations

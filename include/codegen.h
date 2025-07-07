@@ -24,6 +24,7 @@ LLVMValueRef call_codegen(ASTNode *node);
 LLVMValueRef prototype_codegen(ASTNode *node);
 LLVMValueRef func_codegen(ASTNode *node);
 LLVMValueRef block_codegen(ASTNode *node);
+LLVMValueRef extern_codegen(ASTNode *node);
 
 // Helper functions
 void AddNamedValue(const char *name, LLVMValueRef value);

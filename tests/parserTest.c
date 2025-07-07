@@ -13,7 +13,7 @@ int main() {
         
         fib(x) { fib(x-1)+fib(x-2) }
     */
-    source = "fib(x) { fib(x-1) + fib(x-2) }";
+    source = "extern sin(x) \n sin(2)";
     ASTNode* tree = parse();
     print_ast(tree, 0);
     return 0;

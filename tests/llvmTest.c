@@ -3,6 +3,7 @@
 #include "../include/ast.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 extern const char* source;
 extern ASTNode* parse();
@@ -11,7 +12,7 @@ extern void InitializeLLVM();
 int main() {
     InitializeLLVM();
 
-    source = "y = 1 + 2\nx = 4\nz = y + x";
+    source = "fib(x) { fib(x-1)+fib(x-2) }";
     ASTNode* tree = parse();
 
     if (tree) {
@@ -33,6 +34,11 @@ int main() {
     }
 
     // Cleanup
+    if (tree) {
+        // I need to implement proper AST cleanup functions
+        // For now, just free the top node (incomplete cleanup)
+        free(tree);
+    }
     if (TheModule) LLVMDisposeModule(TheModule);
     if (Builder) LLVMDisposeBuilder(Builder);
     if (TheContext) LLVMContextDispose(TheContext);

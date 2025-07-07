@@ -22,10 +22,11 @@ ASTNode* new_binary_node(char op, ASTNode* left, ASTNode* right) {
     return node;
 }
 
-ASTNode* new_extern_node(char *name) {
+ASTNode* new_extern_node(ASTNode* call) {
     ASTNode* node = malloc(sizeof(ASTNode));
     node->type = AST_EXTERN;
-    node->name = name;
+    node->call = call;
+    node->codegen = extern_codegen;
     return node;
 }
 
@@ -64,11 +65,18 @@ ASTNode* new_block_node(ASTNode** statements, int count) {
     return node;
 }
 
-ASTNode* new_func_node(ASTNode* funcName, ASTNodeArray* args, ASTNode *body) {
+ASTNode* new_prototype_node(char* funcName, ASTNodeArray* args) {
     ASTNode *node = malloc(sizeof(ASTNode));
-    node->type = AST_FUNC;
+    node->type = AST_PROTO;
     node->funcName = funcName;
     node->args = args;      
+    node->codegen = prototype_codegen;
+}
+
+ASTNode* new_func_node(ASTNode* prototype, ASTNode *body) {
+    ASTNode *node = malloc(sizeof(ASTNode));
+    node->type = AST_FUNC;
+    node->prototype = prototype; 
     node->body = body;
     node->codegen = func_codegen;
     return node;
@@ -119,7 +127,8 @@ void print_ast(ASTNode* node, int depth) {
             print_ast(node->right, depth + 1);
             break;
         case AST_EXTERN:
-            printf("Extern: %s\n", node->name);
+            printf("Extern: \n");
+            print_ast(node->call, depth + 1);
             break;
         case AST_IDENTIFIER:
             printf("Identifier: %s\n", node->name);
@@ -139,18 +148,20 @@ void print_ast(ASTNode* node, int depth) {
             for (int i = 0; i < node->count; i++)
                 print_ast(node->statements[i], depth + 1);
             break;
-        case AST_FUNC:
-            printf("Function:\n");
-            print_ast(node->funcName, depth + 1);
-            printf("  Parameters:\n");
+        case AST_PROTO:
+            printf("Function: %s\n", node->funcName);
+            printf("    Parameters:\n");
             for (size_t i = 0; i < node->args->size; ++i) {
                 print_ast(node->args->data[i], depth + 2);
             }
+            break;
+        case AST_FUNC:
+            print_ast(node->prototype, depth);
             print_ast(node->body, depth + 1);
             break;
         case AST_CALL:
             printf("Call: %s\n", node->callee);
-            printf("        Arguments:\n");
+            printf("    Arguments:\n");
             for (size_t i = 0; i < node->args->size; ++i) {
                 print_ast(node->args->data[i], depth + 2);
             }

@@ -122,34 +122,40 @@ LLVMValueRef assignment_codegen(ASTNode *node) {
 }
 
 LLVMValueRef block_codegen(ASTNode *node) {
-    // Create a function type that takes no args and returns double
+    // First process any extern declarations
+    for (int i = 0; i < node->count; i++) {
+        if (node->statements[i]->type == AST_EXTERN) {
+            node->statements[i]->codegen(node->statements[i]);
+        }
+    }
+
+    // Then create the function for non-extern statements
     LLVMTypeRef double_type = LLVMDoubleTypeInContext(TheContext);
     LLVMTypeRef func_type = LLVMFunctionType(double_type, NULL, 0, 0);
-    
-    // Create the function
     LLVMValueRef func = LLVMAddFunction(TheModule, "__anon_expr", func_type);
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(func, "entry");
     LLVMPositionBuilderAtEnd(Builder, entry);
-    
-    // Generate code for all statements
+
+    // Generate code for non-extern statements
     LLVMValueRef last = NULL;
     for (int i = 0; i < node->count; i++) {
-        last = node->statements[i]->codegen(node->statements[i]);
-        if (!last) {
-            LLVMDeleteFunction(func);
-            return NULL;
+        if (node->statements[i]->type != AST_EXTERN) {
+            last = node->statements[i]->codegen(node->statements[i]);
+            if (!last) {
+                LLVMDeleteFunction(func);
+                return NULL;
+            }
         }
     }
-    
-    // Return the last expression's value (must be a double)
-    if (LLVMGetTypeKind(LLVMTypeOf(last)) != LLVMDoubleTypeKind) {
-        // If it's not already a double, convert it
+
+    if (!last) {
+        // If no non-extern statements, return 0.0
+        last = LLVMConstReal(LLVMDoubleTypeInContext(TheContext), 0.0);
+    } else if (LLVMGetTypeKind(LLVMTypeOf(last)) != LLVMDoubleTypeKind) {
         last = LLVMBuildLoad2(Builder, LLVMDoubleTypeInContext(TheContext), last, "loadtmp");
     }
-    
+
     LLVMBuildRet(Builder, last);
-    
-    // Verify the function
     LLVMVerifyFunction(func, LLVMAbortProcessAction);
     return func;
 }
@@ -186,7 +192,7 @@ LLVMValueRef call_codegen(ASTNode *node) {
 }
 
 LLVMValueRef prototype_codegen(ASTNode *node) {
-    const char* funcName = node->funcName->name;
+    const char* funcName = node->funcName;
     size_t argCount = node->args ? node->args->size : 0;
 
     LLVMTypeRef *ParamTypes = malloc(argCount * sizeof(LLVMTypeRef));
@@ -213,7 +219,7 @@ LLVMValueRef prototype_codegen(ASTNode *node) {
 }
 
 LLVMValueRef func_codegen(ASTNode *node) {
-    const char* funcName = node->funcName->name;
+    const char* funcName = node->prototype->funcName;
     LLVMValueRef TheFunction = LLVMGetNamedFunction(TheModule, funcName);
 
     if (!TheFunction)
@@ -251,4 +257,34 @@ LLVMValueRef func_codegen(ASTNode *node) {
 
     LLVMDeleteFunction(TheFunction);
     return NULL;
+}
+
+LLVMValueRef extern_codegen(ASTNode *node) {
+    ASTNode *call = node->call;
+    if (!call || call->type != AST_CALL)
+        return LogErrorV("Invalid extern node");
+
+    // Create function type (double -> double)
+    LLVMTypeRef param_types[] = {LLVMDoubleTypeInContext(TheContext)};
+    LLVMTypeRef func_type = LLVMFunctionType(
+        LLVMDoubleTypeInContext(TheContext),
+        param_types,
+        1,  // Number of parameters
+        0   // Not vararg
+    );
+
+    // Add the function declaration
+    LLVMValueRef func = LLVMAddFunction(
+        TheModule,
+        call->callee,
+        func_type
+    );
+
+    // Set parameter name
+    if (call->args && call->args->size > 0) {
+        LLVMValueRef param = LLVMGetParam(func, 0);
+        LLVMSetValueName(param, call->args->data[0]->name);
+    }
+
+    return func;
 }

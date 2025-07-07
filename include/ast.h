@@ -13,6 +13,7 @@ typedef enum {
     AST_BINARY,
     AST_OBJECT, 
     AST_BLOCK,
+    AST_PROTO,
     AST_FUNC,
     AST_CALL
 } ASTNodeType;
@@ -50,10 +51,16 @@ typedef struct ASTNode {
             struct ASTNode** statements; 
             int count; 
         };
-        struct {                // For AST_FUNC
-            struct ASTNode* funcName;
+        struct {                // For AST_PROTO
+            char* funcName;
             ASTNodeArray* args;
+        };
+        struct {                // For AST_FUNC
+            ASTNode* prototype;
             struct ASTNode* body;
+        };
+        struct {                // For AST_EXTERN
+            struct ASTNode* call;
         };
         struct {                // For AST_CALL
             char* callee;
@@ -63,12 +70,13 @@ typedef struct ASTNode {
 
 ASTNode* new_number_node(int value);
 ASTNode* new_binary_node(char op, ASTNode* left, ASTNode* right);
-ASTNode* new_extern_node(char *name);
+ASTNode* new_extern_node(ASTNode* call);
 ASTNode* new_identifier_node(char* name);
 ASTNode* new_assignment_node(ASTNode* varName, ASTNode* varValue);
 ASTNode* new_object_node(ASTNode** statements, int count);
 ASTNode* new_block_node(ASTNode** statements, int count);
-ASTNode* new_func_node(ASTNode* funcName, ASTNodeArray* args, ASTNode *body);
+ASTNode* new_prototype_node(char* funcName, ASTNodeArray* args);
+ASTNode* new_func_node(ASTNode* prototypey, ASTNode *body);
 ASTNode* new_call_node(char* callee, ASTNodeArray* args);
 ASTNodeArray* initASTNodeArray();
 void pushASTNode(ASTNodeArray* arr, ASTNode* expr);
