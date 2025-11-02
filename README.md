@@ -1,4 +1,4 @@
-# Bobert Language
+# The Bobert Language
 *A tiny hobby programming language — born to learn how languages, compilers, and LLVM work.*
 
 ---
